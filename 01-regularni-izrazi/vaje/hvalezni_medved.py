@@ -29,7 +29,7 @@ medved. Zvrhano zibelko sladkih hrušk mi je prinesel za en sam izdrt trn"."""
 ###############################################################################
 
 def find_words(text, substring):
-    pattern = re.compile(r'\b\w' + substring + r'\w*\b')
+    pattern = re.compile(r'\b\w*' + substring + r'\w*\b')
     m = re.findall(pattern, text)
     return m
 
@@ -41,6 +41,10 @@ def find_words(text, substring):
 # {'zibala', 'zibel', 'zibelko'}
 ###############################################################################
 
+def find_prefix(text, prefix):
+    pattern = re.compile(r'\b' + prefix + r'\w*\b')
+    m = re.findall(pattern, text)
+    return m
 
 ###############################################################################
 # 3) Sestavite funkcijo [find_suffix], ki vrne množico vseh besed, ki se
@@ -50,6 +54,10 @@ def find_words(text, substring):
 # {'zibala', 'razveselila', 'prestrašila', 'šivala', 'opazila', 'tla'}
 ###############################################################################
 
+def find_suffix(text, suffix):
+    pattern = re.compile(r'\b\w*' + suffix + r'\b')
+    m = re.findall(pattern, text)
+    return set(m)
 
 ###############################################################################
 # 4) Sestavite funkcijo [double_letters], ki sprejme niz in vrne množico vseh
@@ -60,9 +68,9 @@ def find_words(text, substring):
 ###############################################################################
 
 def double_letters(text):
-    pattern = re.compile(r'\b\w*(?P<char0>\w\d+)(?P<char1>\w)(?P = char1)(?P = char0)\w*\b')
+    rx = r'(\b\w*(\w)\2\w*\b)'
+    matches = re.findall(rx, text)
+    print(matches)
+    return set([match[0] for match in matches])
 
-    return {m.group(0) for m in re.finditer(pattern, text)}
-
-
-test = double_letters('A volunteer is worth twenty pressed men.')
+test = 'A volunteer is worth twenty pressed men.'
