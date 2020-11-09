@@ -7,7 +7,7 @@ import re
 # Najprej definirajmo nekaj pomožnih orodij za pridobivanje podatkov s spleta.
 ###############################################################################
 
-# definiratje URL glavne strani bolhe za oglase z mačkami
+# definirajte URL glavne strani bolhe za oglase z mačkami
 cats_frontpage_url = 'http://www.bolha.com/zivali/male-zivali/macke/'
 # mapa, v katero bomo shranili podatke
 cat_directory = 'macke-podatki'
@@ -88,7 +88,7 @@ def page_to_ads(page_content):
 
 
 # Definirajte funkcijo, ki sprejme niz, ki predstavlja oglas, in izlušči
-# podatke o imenu, ceni in opisu v oglasu.
+# podatke o imenu, lokaciji, datumu objave in ceni v oglasu.
 
 
 def get_dict_from_ad_block(block):
@@ -126,7 +126,7 @@ def write_csv(fieldnames, rows, directory, filename):
     """
     os.makedirs(directory, exist_ok=True)
     path = os.path.join(directory, filename)
-    with open(path, 'w') as csv_file:
+    with open(path, 'w', encoding='utf-8') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for row in rows:
@@ -179,8 +179,8 @@ def main(redownload=False, reparse=True):
         write_cat_ads_to_csv(ads) 
 
 
-    # Dodatno: S pomočjo parameteov funkcije main omogoči nadzor, ali se
-    # celotna spletna stran ob vsakem zagon prense (četudi že obstaja)
+    # Dodatno: S pomočjo parametrov funkcije main omogoči nadzor, ali se
+    # celotna spletna stran ob vsakem zagon prenese (četudi že obstaja)
     # in enako za pretvorbo
 
     print('potrebno je še implementirati funkcijo "main"')
