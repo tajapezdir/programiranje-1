@@ -4,7 +4,19 @@
 Namig: Definirajte pomožno funkcijo za obračanje seznamov.
 [*----------------------------------------------------------------------------*)
 
-let rec reverse = ()
+let reverse list =
+  let rec reverse_aux acc list = 
+    match list with
+    | [] -> acc
+    | x :: xs -> reverse_aux (x :: acc) xs   
+  in
+  reverse_aux [] list
+
+
+let rec bad_reverse = function
+  | [] -> []
+  | x :: xs -> bad_reverse xs @ [x]
+
 
 (*----------------------------------------------------------------------------*]
  Funkcija [repeat x n] vrne seznam [n] ponovitev vrednosti [x]. Za neprimerne
@@ -16,7 +28,21 @@ let rec reverse = ()
  - : string list = []
 [*----------------------------------------------------------------------------*)
 
-let rec repeat = ()
+let repeat x n =
+  let rec aux_repeat n acc =
+    if n <= 0 then acc
+    else aux_repeat (n - 1) (x :: acc)
+  in
+  aux_repeat n []
+
+
+let rec repeat x n =
+  if n <= 0 then
+    []
+  else
+    x :: repeat x (n - 1)
+    
+
 
 (*----------------------------------------------------------------------------*]
  Funkcija [range] sprejme število in vrne seznam vseh celih števil od 0 do
@@ -27,7 +53,15 @@ let rec repeat = ()
  - : int list = [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10]
 [*----------------------------------------------------------------------------*)
 
-let rec range = ()
+(*
+let range n =
+  let rec aux n acc =
+    if n < 0 then
+      acc
+    else
+      aux (n - 1) (n :: acc)
+  aux n []
+*)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [map f list] sprejme seznam [list] oblike [x0; x1; x2; ...] in
