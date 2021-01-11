@@ -6,6 +6,9 @@
  poddrevesi. Na tej točki ne predpostavljamo ničesar drugega o obliki dreves.
 [*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*)
 
+type 'a tree =
+  | Prazno
+  | Vozlisce of 'a tree * 'a * 'a tree
 
 (*----------------------------------------------------------------------------*]
  Definirajmo si testni primer za preizkušanje funkcij v nadaljevanju. Testni
@@ -18,6 +21,9 @@
       0   6   11
 [*----------------------------------------------------------------------------*)
 
+let leaf x = Vozlisce (Prazno, x, Prazno)
+
+let test_tree = Vozlisce (Vozlisce(leaf 0, 2, Prazno), 5, Vozlisce(leaf 6, 7, leaf 11))
 
 (*----------------------------------------------------------------------------*]
  Funkcija [mirror] vrne prezrcaljeno drevo. Na primeru [test_tree] torej vrne
@@ -33,6 +39,9 @@
  Node (Empty, 2, Node (Empty, 0, Empty)))
 [*----------------------------------------------------------------------------*)
 
+let rec mirror = function
+  | Prazno -> Prazno
+  | Vozlisce (l, vozel, d) -> Vozlisce (mirror d, vozel, mirror l)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [height] vrne višino oz. globino drevesa, funkcija [size] pa število
@@ -44,6 +53,13 @@
  - : int = 6
 [*----------------------------------------------------------------------------*)
 
+let rec height = function 
+  | Prazno -> 0
+  | Vozlisce (l, _, d) -> 1 + max (height l) (height d)
+
+let rec size = function
+  | Prazno -> 0
+  | Vozlisce (l, _, d) -> 1 + size l + size d
 
 (*----------------------------------------------------------------------------*]
  Funkcija [map_tree f tree] preslika drevo v novo drevo, ki vsebuje podatke
@@ -55,6 +71,9 @@
  Node (Node (Empty, true, Empty), true, Node (Empty, true, Empty)))
 [*----------------------------------------------------------------------------*)
 
+let rec map_tree f = function
+  | Prazno -> Prazno
+  | Vozlisce (l, x, d) -> Vozlisce(map_tree f l, f x, map_tree f d)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [list_of_tree] pretvori drevo v seznam. Vrstni red podatkov v seznamu
@@ -64,6 +83,9 @@
  - : int list = [0; 2; 5; 6; 7; 11]
 [*----------------------------------------------------------------------------*)
 
+let rec list_of_tree = function
+  | Prazno -> []
+  | Vozlisce (l, x, r) -> (list_of_tree l) @ [x] @ (list_of_tree r)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [is_bst] preveri ali je drevo binarno iskalno drevo (Binary Search 
@@ -75,6 +97,15 @@
  # test_tree |> mirror |> is_bst;;
  - : bool = false
 [*----------------------------------------------------------------------------*)
+
+let is_bst tree = 
+     let l = list_of_tree tree in
+     let rec is_sorted = function
+          | [] -> true
+          | [_] -> true
+          | x::y::rest -> (x <= y) && (is_sorted (y::rest))
+     in
+     is_sorted l
 
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
@@ -91,6 +122,21 @@
  - : bool = false
 [*----------------------------------------------------------------------------*)
 
+let rec insert x = function
+  | Prazno -> leaf x
+  | Vozlisce (l, y, r) -> (
+       if x = y then Vozlisce (l, x, r)
+       else if x < y then Vozlisce(insert x l, y, r)
+       else Vozlisce (l, y, insert x r)
+  )
+
+let rec member x = function 
+  | Prazno -> false
+  | Vozlisce (l, y, r) -> (
+       if x = y then true
+       else if x < y then member x l
+       else member x r
+  )
 
 (*----------------------------------------------------------------------------*]
  Funkcija [member2] ne privzame, da je drevo bst.
@@ -99,6 +145,9 @@
  funkcije [member2] na drevesu z n vozlišči, ki ima globino log(n). 
 [*----------------------------------------------------------------------------*)
 
+let rec member2 x = function
+  | Prazno -> false
+  | Vozlisce(l, y, r) -> x = y || (member2 x l) || (member2 x r)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [succ] vrne naslednjika korena danega drevesa, če obstaja. Za drevo
@@ -113,6 +162,25 @@
  - : int option = None
 [*----------------------------------------------------------------------------*)
 
+let succ bst =
+  let rec minimal = function
+    | Prazno -> None
+    | Vozlisce(Prazno, x, _) -> Some x
+    | Vozlisce(l, _, _) -> minimal l
+  in
+  match bst with
+  | Prazno -> None
+  | Vozlisce(_, _, r) -> minimal r
+
+let pred bst =
+  let rec maximal = function
+    | Prazno -> None
+    | Vozlisce (_, x, Prazno) -> Some x
+    | Vozlisce (l, _, _) -> maximal l
+  in
+  match bst with
+  | Prazno -> None
+  | Vozlisce (_, _, r) -> maximal r
 
 (*----------------------------------------------------------------------------*]
  Na predavanjih ste omenili dva načina brisanja elementov iz drevesa. Prvi 
@@ -127,6 +195,21 @@
  Node (Node (Empty, 6, Empty), 11, Empty))
 [*----------------------------------------------------------------------------*)
 
+let rec delete x = function
+  | Prazno -> Prazno
+  | Vozlisce(l, y, r) when y < x -> Vozlisce(l, y, delete x r)
+  | Vozlisce(l, y, r) when x < y -> Vozlisce(delete x l, y, r)
+  | Vozlisce(l, y, r) as bst -> (
+      (*Potrebno je izbrisati vozlišče.*)
+      match succ bst with
+      | None -> l (*To se zgodi le kadar je [r] enak [Empty].*)
+      | Some s ->
+        let clean_r = delete s r in
+        Vozlisce(l, s, clean_r))
+
+(* Nekoč napiši enako kodo še za primer ko uporabis funkcijo pred *)
+
+
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  SLOVARJI
@@ -139,6 +222,7 @@
  vrednosti, ga parametriziramo kot [('key, 'value) dict].
 [*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*)
 
+type ('key, 'value) dict = ('key * 'value) tree
 
 (*----------------------------------------------------------------------------*]
  Napišite testni primer [test_dict]:
@@ -148,6 +232,9 @@
          /
      "c":-2
 [*----------------------------------------------------------------------------*)
+
+let test_dict : (string, int) dict = 
+     Vozlisce(leaf ("a", 0), ("b", 1), Vozlisce(leaf ("c", - 2), ("d", 2), Prazno))
 
 
 (*----------------------------------------------------------------------------*]
@@ -160,6 +247,15 @@
  - : int option = Some (-2)
 [*----------------------------------------------------------------------------*)
 
+let rec dict_get k = function
+  | Prazno -> None
+  | Vozlisce (l, (k', v), r) ->
+    if k = k' then
+      Some v
+    else if k < k' then
+      dict_get k l
+    else
+      dict_get k r
       
 (*----------------------------------------------------------------------------*]
  Funkcija [print_dict] sprejme slovar s ključi tipa [string] in vrednostmi tipa
@@ -176,7 +272,12 @@
  d : 2
  - : unit = ()
 [*----------------------------------------------------------------------------*)
-
+let rec print_dict = function
+  | Prazno -> ()
+  | Vozlisce (d_l, (k, v), d_r) -> (
+      print_dict d_l;
+      print_string (k ^ " : "); print_int v; print_newline ();
+      print_dict d_r) 
 
 (*----------------------------------------------------------------------------*]
  Funkcija [dict_insert key value dict] v slovar [dict] pod ključ [key] vstavi
@@ -196,4 +297,8 @@
  d : 2
  - : unit = ()
 [*----------------------------------------------------------------------------*)
-
+let rec dict_insert k v = function
+  | Prazno -> leaf (k, v)
+  | Vozlisce (l, (k', _), r) when k = k' -> Vozlisce (l, (k, v), r)
+  | Vozlisce (l, (k', v'), r) when k < k' -> Vozlisce (dict_insert k v l, (k', v'), r)
+  | Vozlisce (l, (k', v'), r) (* when k > k' *) -> Vozlisce (l, (k', v'), dict_insert k v r)

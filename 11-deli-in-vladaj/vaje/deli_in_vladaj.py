@@ -27,7 +27,17 @@
 #     [10, 2, 0, 4, 11, 15, 17, 5, 18]
 ###############################################################################
 
-
+def pivot(a, start, end):
+    p = a[start]
+    prvi_vecji = start + 1
+    # Invarianta: med [prvi_vecji] in [i] so samo elementi manjši od [p]
+    for i in range(start + 1, end + 1):
+        if a[i] < p:
+            a[prvi_vecji], a[i] = a[i], a[prvi_vecji]
+            prvi_vecji += 1
+    # vstavimo pivot na pravo mesto
+    a[start], a[prvi_vecji - 1] + a[prvi_vecji - 1], a[start]
+    return prvi_vecji - 1
 
 ###############################################################################
 # V tabeli želimo poiskati vrednost k-tega elementa po velikosti.
